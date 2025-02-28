@@ -90,6 +90,8 @@ class Video {
 
         // 从 player_info 中获取字幕信息
         const subtitles = this.player_info?.subtitle?.subtitles || [];
+
+        console.log(subtitles)
         
         // 如果没有字幕，返回空数组
         if (subtitles.length === 0) return
@@ -111,6 +113,13 @@ class Video {
 
         const subtitleData = await api.request({ raw: true });
         return subtitleData;
+    }
+
+    async getCidByIndex(index: number) {
+        if (!this.info) await this.getInfo()
+        const pages = this.info.pages
+        if (index > pages?.length - 1) throw new Error('index out of range')
+        return pages[index].cid
     }
 }
 

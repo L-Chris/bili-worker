@@ -9,11 +9,6 @@ app.get('/video/subtitle', async (c) => {
   try {
     // 获取查询参数
     const bvid = c.req.query('bvid');
-    const sessdata = c.req.query('sessdata') || ''
-    const bili_jct = c.req.query('bili_jct') || ''
-    const buvid3 = c.req.query('buvid3') || ''
-    const dedeuserid = c.req.query('dedeuserid') || ''
-    const ac_time_value = c.req.query('ac_time_value') || ''
 
     // 参数验证
     if (!bvid) {
@@ -23,20 +18,31 @@ app.get('/video/subtitle', async (c) => {
       }, 400);
     }
 
-    const video = new Video({ bvid, credential: {
-        sessdata,
-        bili_jct,
-        buvid3,
-        dedeuserid,
-        ac_time_value
-    } })
+    // 从 cookie 中获取凭据
+    const cookie = c.req.header('cookie') || '';
+    const cookies = Object.fromEntries(
+      cookie.split(';')
+        .map(item => item.trim().split('='))
+        .filter(item => item.length === 2)
+    );
+
+    const video = new Video({ 
+      bvid, 
+      credential: {
+        sessdata: cookies['sessdata'] || '',
+        bili_jct: cookies['bili_jct'] || '',
+        buvid3: cookies['buvid3'] || '',
+        dedeuserid: cookies['dedeuserid'] || '',
+        ac_time_value: cookies['ac_time_value'] || ''
+      } 
+    });
 
     // 调用 video 模块获取字幕
-    const subtitles = await video.getSubtitle();
+    const subtitle = await video.getSubtitle();
     
     return c.json({
       code: 200,
-      data: subtitles
+      data: subtitle
     });
     
   } catch (error) {
