@@ -27,6 +27,9 @@ class Video {
         } else if (options.aid) {
             this.aid = options.aid
             this.bvid = aid2bvid(this.aid)
+            if (options.credential) {
+                this.credential = new Credential(options.credential)
+            }
         }
     }
 
@@ -41,7 +44,6 @@ class Video {
         });
 
         const body = await api.request();
-        console.log('body', JSON.stringify(body))
         this.info = body;
         return body;
     }
@@ -53,7 +55,7 @@ class Video {
             ...videoApi.info.get_player_info,
             params: {
                 aid: this.aid,
-                cid: this.info.data.cid,
+                cid: this.info.cid,
                 bvid: this.bvid,
                 web_location: '1315873'
             },

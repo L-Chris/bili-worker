@@ -10,9 +10,12 @@ credential = Credential(
 
 v = video.Video('BV1zWPseMEGT')
 
-sync(ass.make_ass_file_subtitle(
-    obj=v, # 生成弹幕文件的对象
-    page_index=0, # 哪一个分 P (从 0 开始)
-    out="output/xml.ass", # 输出文件地址
-    credential=credential,
-))
+print(v.get_bvid())
+print(v.get_aid())
+
+# sync(ass.make_ass_file_subtitle(
+#     obj=v, # 生成弹幕文件的对象
+#     page_index=0, # 哪一个分 P (从 0 开始)
+#     out="output/xml.ass", # 输出文件地址
+#     credential=credential,
+# ))

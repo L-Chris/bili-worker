@@ -206,8 +206,6 @@ export class Api {
     private files: Record<string, any>;
     private headers: Record<string, any>;
     private credential: Credential;
-    private originalData: Record<string, any>;
-    private originalParams: Record<string, any>;
 
     /**
      * @param options Api 配置选项
@@ -247,16 +245,6 @@ export class Api {
         this.files = options.files || {};
         this.headers = options.headers || {};
         this.credential = options.credential || new Credential({});
-
-        // 保存原始数据
-        this.originalData = { ...this.data };
-        this.originalParams = { ...this.params };
-        
-        // 初始化空值
-        this.data = Object.fromEntries(Object.keys(this.data).map(k => [k, ""]));
-        this.params = Object.fromEntries(Object.keys(this.params).map(k => [k, ""]));
-        this.files = Object.fromEntries(Object.keys(this.files).map(k => [k, ""]));
-        this.headers = Object.fromEntries(Object.keys(this.headers).map(k => [k, ""]));
     }
 
     /**
@@ -315,6 +303,11 @@ export class Api {
             this.params = encWbi(this.params, mixinKey);
         }
 
+        if (this.biliTicket) {
+            // todo
+            cookies.bili_ticket_expires = String(Math.floor(Date.now() / 1000) + 2 * 86400);
+        }
+
         // APP 鉴权
         if (this.sign) {
             if (this.method in ["POST", "DELETE", "PATCH"]) {
@@ -358,6 +351,8 @@ export class Api {
         }
 
         const respData = await response.json();
+
+        console.log(respData)
 
         if (raw) {
             return respData;
@@ -405,6 +400,11 @@ export class Api {
         }
 
         try {
+            let body
+            if (!['get', 'head'].includes(config.method.toLowerCase())) {
+                body = typeof config.data === 'string' ? config.data : JSON.stringify(config.data)
+            }
+
             const response = await fetch(url.toString(), {
                 method: config.method,
                 headers: {
@@ -413,9 +413,7 @@ export class Api {
                         .map(([key, value]) => `${key}=${value}`)
                         .join('; ')
                 },
-                body: config.data ? 
-                    (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) 
-                    : undefined
+                ...(config.data ? { body } : {})
             });
 
             if (!response.ok) {
