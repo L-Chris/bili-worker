@@ -50,7 +50,6 @@ class Video {
 
     async getPlayerInfo() {
         if (!this.info) await this.getInfo();
-
         const api = new Api({
             ...videoApi.info.get_player_info,
             params: {

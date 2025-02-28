@@ -1,5 +1,6 @@
 import { crypto } from "https://deno.land/std/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std/encoding/hex.ts";
+import credentialApi from "./api/credential.json" with { type: "json" };
 
 /**
  * 凭据类，用
@@ -88,8 +89,7 @@ const APPSEC = "560c52ccd288fed045859ed18bffd973";
  */
 async function getNav(credential?: Credential): Promise<any> {
     const api = new Api({
-        url: 'https://api.bilibili.com/x/web-interface/nav',
-        method: 'GET',
+        ...credentialApi.info.valid,
         credential: credential
     });
     return await api.request();
@@ -216,11 +216,11 @@ export class Api {
         comment?: string;
         wbi?: boolean;
         wbi2?: boolean;
-        biliTicket?: boolean;
+        bili_ticket?: boolean;
         verify?: boolean;
-        noCsrf?: boolean;
-        jsonBody?: boolean;
-        ignoreCode?: boolean;
+        no_csrf?: boolean;
+        json_body?: boolean;
+        ignore_code?: boolean;
         sign?: boolean;
         data?: Record<string, any>;
         params?: Record<string, any>;
@@ -233,11 +233,11 @@ export class Api {
         this.comment = options.comment || "";
         this.wbi = options.wbi || false;
         this.wbi2 = options.wbi2 || false;
-        this.biliTicket = options.biliTicket || false;
+        this.biliTicket = options.bili_ticket || false;
         this.verify = options.verify || false;
-        this.noCsrf = options.noCsrf || false;
-        this.jsonBody = options.jsonBody || false;
-        this.ignoreCode = options.ignoreCode || false;
+        this.noCsrf = options.no_csrf || false;
+        this.jsonBody = options.json_body || false;
+        this.ignoreCode = options.ignore_code || false;
         this.sign = options.sign || false;
         
         this.data = options.data || {};
@@ -351,8 +351,6 @@ export class Api {
         }
 
         const respData = await response.json();
-
-        console.log(respData)
 
         if (raw) {
             return respData;

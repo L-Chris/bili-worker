@@ -8,10 +8,16 @@ credential = Credential(
     ac_time_value="b55b1c2beacf0a5bb81848f0fc683722"
 )
 
-v = video.Video('BV1zWPseMEGT')
+v = video.Video(bvid='BV1zWPseMEGT',credential=credential)
 
 print(v.get_bvid())
 print(v.get_aid())
+
+info = sync(v.get_info())
+
+print("cid", info['cid'])
+
+print(sync(v.get_player_info(info['cid'])))
 
 # sync(ass.make_ass_file_subtitle(
 #     obj=v, # 生成弹幕文件的对象
