@@ -60,7 +60,8 @@ class Video {
             aid: this.aid,
             cid,
             bvid: this.bvid,
-            web_location: '1315873'
+            isGaiaAvoided: false,
+            web_location: 1315873
         } as Record<string, any>
 
         if (params?.epid) {
@@ -104,7 +105,7 @@ class Video {
         if (!targetSubtitle?.subtitle_url) return
 
         // 获取字幕内容
-        const subtitle_url = /^https:/.test(targetSubtitle?.subtitle_url) ? `https:${targetSubtitle?.subtitle_url}` : targetSubtitle.subtitle_url
+        const subtitle_url = !/^https:/.test(targetSubtitle?.subtitle_url) ? `https:${targetSubtitle?.subtitle_url}` : targetSubtitle.subtitle_url
         const api = new Api({
             url: subtitle_url,
             method: 'GET',

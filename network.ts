@@ -144,19 +144,24 @@ function encWbi(params: Record<string, any>, mixinKey: string): Record<string, a
  * wbi2 加密
  */
 function encWbi2(params: Record<string, any>): Record<string, any> {
-    const dmRand = "ABCDEFGHIJK";
-    const getRandomStr = () => {
-        const chars = [...dmRand];
-        return Array.from({ length: 2 }, () => 
-            chars.splice(Math.floor(Math.random() * chars.length), 1)[0]
+    // 生成随机字符串并进行base64编码
+    const generateRandomStr = (minLen: number, maxLen: number) => {
+        const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~"\'\\-';
+        const len = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
+        const randomStr = Array.from(
+            { length: len }, 
+            () => chars[Math.floor(Math.random() * chars.length)]
         ).join('');
+        
+        // base64编码并移除末尾的等号
+        return btoa(randomStr).replace(/=+$/, '');
     };
 
     return {
         ...params,
         dm_img_list: "[]",
-        dm_img_str: getRandomStr(),
-        dm_cover_img_str: getRandomStr(),
+        dm_img_str: generateRandomStr(16, 64),
+        dm_cover_img_str: generateRandomStr(32, 128),
         dm_img_inter: '{"ds":[],"wh":[0,0,0],"of":[0,0,0]}'
     };
 }
@@ -256,19 +261,21 @@ export class Api {
         const newData: Record<string, any> = {};
         
         for (const [key, value] of Object.entries(this.params)) {
-            if (typeof value === 'boolean') {
-                newParams[key] = Number(value);
-            } else if (value != null) {
-                newParams[key] = value;
-            }
+            // if (typeof value === 'boolean') {
+            //     newParams[key] = Number(value);
+            // } else if (value != null) {
+            //     newParams[key] = value;
+            // }
+            newParams[key] = value;
         }
         
         for (const [key, value] of Object.entries(this.data)) {
-            if (typeof value === 'boolean') {
-                newData[key] = Number(value);
-            } else if (value != null) {
-                newData[key] = value;
-            }
+            // if (typeof value === 'boolean') {
+            //     newData[key] = Number(value);
+            // } else if (value != null) {
+            //     newData[key] = value;
+            // }
+            newData[key] = value;
         }
         
         this.params = newParams;
