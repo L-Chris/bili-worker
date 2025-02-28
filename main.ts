@@ -9,6 +9,7 @@ app.get('/video/subtitle', async (c) => {
   try {
     // 获取查询参数
     const bvid = c.req.query('bvid');
+    const type = c.req.query('type') || '0' // 0 - data为所有字幕汇总后的文本、1 - 资源原数据为对象
 
     // 参数验证
     if (!bvid) {
@@ -39,10 +40,11 @@ app.get('/video/subtitle', async (c) => {
 
     // 调用 video 模块获取字幕
     const subtitle = await video.getSubtitle();
+    const data = (type === '0' && Array.isArray(subtitle?.body)) ? subtitle.body.reduce((pre: string, cur: { content: string }) => pre + cur.content, '') : subtitle
     
     return c.json({
       code: 200,
-      data: subtitle
+      data
     });
     
   } catch (error) {

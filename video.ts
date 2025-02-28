@@ -92,8 +92,6 @@ class Video {
         // 从 player_info 中获取字幕信息
         const subtitles = this.player_info?.subtitle?.subtitles || [];
 
-        console.log(subtitles)
-        
         // 如果没有字幕，返回空数组
         if (subtitles.length === 0) return
 
