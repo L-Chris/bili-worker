@@ -1,5 +1,5 @@
 import { crypto } from "https://deno.land/std/crypto/mod.ts";
-import { encode as hexEncode } from "https://deno.land/std/encoding/hex.ts";
+import { encodeHex } from "https://deno.land/std/encoding/hex.ts";
 
 /**
  * 凭据类，用
@@ -451,5 +451,5 @@ function md5(str: string): string {
             new TextEncoder().encode(str)
         )
     );
-    return hexEncode(hash);
+    return encodeHex(hash);
 }

@@ -41,6 +41,7 @@ class Video {
         });
 
         const body = await api.request();
+        console.log('body', JSON.stringify(body))
         this.info = body;
         return body;
     }

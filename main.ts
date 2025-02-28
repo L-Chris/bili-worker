@@ -47,3 +47,5 @@ app.get('/video/subtitle', async (c) => {
     }, 500);
   }
 });
+
+Deno.serve({ port: 8000 }, app.fetch)

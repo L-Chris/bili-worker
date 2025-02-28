@@ -9,7 +9,8 @@
     }
   },
   "redirects": {
-    "https://deno.land/std/crypto/mod.ts": "https://deno.land/std@0.224.0/crypto/mod.ts"
+    "https://deno.land/std/crypto/mod.ts": "https://deno.land/std@0.224.0/crypto/mod.ts",
+    "https://deno.land/std/encoding/hex.ts": "https://deno.land/std@0.224.0/encoding/hex.ts"
   },
   "remote": {
     "https://deno.land/std@0.208.0/assert/assert.ts": "9a97dad6d98c238938e7540736b826440ad8c1c1e54430ca4c4e623e585607ee",
@@ -39,7 +40,8 @@
     "https://deno.land/std@0.224.0/crypto/unstable_keystack.ts": "c2a6f6ed67a4e78745e3c9b490ebb7c12f6066f5c2fe0c69d353961909dc82dd",
     "https://deno.land/std@0.224.0/encoding/_util.ts": "beacef316c1255da9bc8e95afb1fa56ed69baef919c88dc06ae6cb7a6103d376",
     "https://deno.land/std@0.224.0/encoding/base64.ts": "dd59695391584c8ffc5a296ba82bcdba6dd8a84d41a6a539fbee8e5075286eaf",
-    "https://deno.land/std@0.224.0/encoding/base64url.ts": "ef40e0f18315ab539f17cebcc32839779e018d86dea9df39d94d302f342a1713"
+    "https://deno.land/std@0.224.0/encoding/base64url.ts": "ef40e0f18315ab539f17cebcc32839779e018d86dea9df39d94d302f342a1713",
+    "https://deno.land/std@0.224.0/encoding/hex.ts": "6270f25e5d85f99fcf315278670ba012b04b7c94b67715b53f30d03249687c07"
   },
   "workspace": {
     "dependencies": [
