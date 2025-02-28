@@ -1,4 +1,6 @@
+import { Api, Credential } from "./network.ts";
 import { aid2bvid, bvid2aid } from "./utils.ts";
+import videoApi from "./api/video.json" with { type: "json" };
 
 
 class Video {
@@ -6,7 +8,7 @@ class Video {
     private aid: number = 0
     public info: any
     public player_info: any
-    private credential: ICredential | undefined
+    private credential: Credential | undefined
 
     constructor(options: {
         bvid?: string
@@ -19,7 +21,9 @@ class Video {
         } else if (options.bvid) {
             this.bvid = options.bvid
             this.aid = bvid2aid(this.bvid)
-            this.credential = options.credential
+            if (options.credential) {
+                this.credential = new Credential(options.credential)
+            }
         } else if (options.aid) {
             this.aid = options.aid
             this.bvid = aid2bvid(this.aid)
@@ -27,41 +31,37 @@ class Video {
     }
 
     async getInfo() {
-        const params = new URLSearchParams({
-            aid: this.aid.toString(),
-            bvid: this.bvid
+        const api = new Api({
+            ...videoApi.info.info,
+            params: {
+                aid: this.aid,
+                bvid: this.bvid
+            },
+            credential: this.credential
         });
 
-        const res = await fetch(`https://api.bilibili.com/x/web-interface/view?${params.toString()}`, {
-            method: 'get',
-        })
-
-        const body = await res.json()
-
-        this.info = body
-
-        return body
+        const body = await api.request();
+        this.info = body;
+        return body;
     }
 
     async getPlayerInfo() {
-        if (!this.info) await this.getInfo()
+        if (!this.info) await this.getInfo();
 
-        const params = new URLSearchParams({
-            aid: this.aid.toString(),
-            cid: this.info.cid,
-            bvid: this.bvid,
-            web_location: '1315873'
+        const api = new Api({
+            ...videoApi.info.get_player_info,
+            params: {
+                aid: this.aid,
+                cid: this.info.data.cid,
+                bvid: this.bvid,
+                web_location: '1315873'
+            },
+            credential: this.credential
         });
 
-        const res = await fetch(`https://api.bilibili.com/x/player/wbi/v2?${params.toString()}`, {
-            method: 'get',
-        })
-
-        const body = await res.json()
-
-        this.player_info = body
-
-        return body
+        const body = await api.request();
+        this.player_info = body;
+        return body;
     }
 
     async getSubtitle(params: {
@@ -70,8 +70,35 @@ class Video {
         out?: string
         lan_name?: string
         lan_code?: string
-    }) {
-        if (!this.player_info) await this.getPlayerInfo()
+    } = {}) {
+        if (!this.player_info) await this.getPlayerInfo();
+
+        // 从 player_info 中获取字幕信息
+        const subtitles = this.player_info.data?.subtitle?.subtitles || [];
+        
+        // 如果没有字幕，返回空数组
+        if (subtitles.length === 0) {
+            return [];
+        }
+
+        // 根据语言代码查找字幕
+        const targetSubtitle = params.lan_code ? 
+            subtitles.find((sub: any) => sub.lan === params.lan_code) : 
+            subtitles[0];
+
+        if (!targetSubtitle?.subtitle_url) {
+            return [];
+        }
+
+        // 获取字幕内容
+        const api = new Api({
+            url: targetSubtitle.subtitle_url,
+            method: 'GET',
+            credential: this.credential
+        });
+
+        const subtitleData = await api.request();
+        return subtitleData?.body || [];
     }
 }
 

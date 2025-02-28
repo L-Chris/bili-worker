@@ -1,0 +1,255 @@
+{
+    "info": {
+        "stat": {
+          "url": "https://api.bilibili.com/x/web-interface/archive/stat",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "视频数据"
+        },
+        "info": {
+          "url": "https://api.bilibili.com/x/web-interface/view",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "视频详细信息"
+        },
+        "detail": {
+          "url": "https://api.bilibili.com/x/web-interface/wbi/view/detail",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号",
+            "need_operation_card": "int: 0",
+            "need_elec": "int: 0"
+          }
+        },
+        "cid_info": {
+          "url": "https://hd.biliplus.com/api/cidinfo",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "cid": "int:分 P CID"
+          },
+          "comment": "获取 cid 对应的视频"
+        },
+        "tags": {
+          "url": "https://api.bilibili.com/x/web-interface/view/detail/tag",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "视频标签信息"
+        },
+        "chargers": {
+          "url": "https://api.bilibili.com/x/web-interface/elec/show",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号",
+            "mid": "int: 用户 UID"
+          },
+          "comment": "视频充电信息"
+        },
+        "video_snapshot_pvideo": {
+          "url": "https://api.bilibili.com/pvideo",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号"
+          },
+          "comment": "视频预览快照(web)"
+        },
+        "video_snapshot": {
+          "url": "https://api.bilibili.com/x/player/videoshot",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号",
+            "cid": "int:分 P CID",
+            "index": "int:json 数组截取时间表1为需要，0不需要"
+          },
+          "comment": "视频快照(web)"
+        },
+        "pages": {
+          "url": "https://api.bilibili.com/x/player/pagelist",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "分 P 列表"
+        },
+        "playurl": {
+          "url": "https://api.bilibili.com/x/player/wbi/playurl",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "avid": "int: av 号",
+            "cid": "int: 分 P 编号",
+            "qn": "int: 视频质量编号，最高 127",
+            "otype": "const str: json",
+            "fnval": "const int: 4048",
+            "platform": "int: 平台"
+          },
+          "comment": "视频下载的信息，下载链接需要提供 headers 伪装浏览器请求（Referer 和 User-Agent）"
+        },
+        "related": {
+          "url": "https://api.bilibili.com/x/web-interface/archive/related",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "获取关联视频"
+        },
+        "relation": {
+          "url": "https://api.bilibili.com/x/web-interface/archive/relation",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "获取用户与视频关联的信息"
+        },
+        "has_liked": {
+          "url": "https://api.bilibili.com/x/web-interface/archive/has/like",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "是否已点赞"
+        },
+        "get_pay_coins": {
+          "url": "https://api.bilibili.com/x/web-interface/archive/coins",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号"
+          },
+          "comment": "是否已投币"
+        },
+        "has_favoured": {
+          "url": "https://api.bilibili.com/x/v2/fav/video/favoured",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "aid": "int: av 号"
+          },
+          "comment": "是否已收藏"
+        },
+        "media_list": {
+          "url": "https://api.bilibili.com/x/v3/fav/folder/created/list-all",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "rid": "int: av 号",
+            "up_mid": "int: up 主的 uid",
+            "type": "const int: 2"
+          },
+          "comment": "获取收藏夹列表信息，用于收藏操作"
+        },
+        "get_player_info": {
+          "url": "https://api.bilibili.com/x/player/wbi/v2",
+          "method": "GET",
+          "verify": true,
+          "wbi": true,
+          "wbi2": true,
+          "data": {
+            "aid": "int: av 号。与 bvid 任选其一",
+            "cid": "int: 分 P id",
+            "ep_id": "int: 番剧分集 id",
+            "isGaiaAvoided": "bool: false",
+            "web_location": "int: 1315873"
+          },
+          "comment": "获取视频上一次播放的记录，字幕和地区信息。需要 分集的 cid, 返回数据中含有json字幕的链接"
+        },
+        "pbp": {
+          "url": "https://bvc.bilivideo.com/pbp/data",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "cid": "int: 分 P 编号",
+            "bvid": "string: BV 号",
+            "aid": "int: av 号"
+          }
+        },
+        "is_forbid": {
+          "url": "https://api.bilibili.com/x/note/is_forbid",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "aid": "int: av 号"
+          },
+          "comment": "是否允许笔记"
+        },
+        "private_notes": {
+          "url": "https://api.bilibili.com/x/note/list/archive",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "oid": "int: av 号",
+            "oid_type": "int: oid_type"
+          },
+          "comment": "列出稿件私有笔记列表"
+        },
+        "public_notes": {
+          "url": "https://api.bilibili.com/x/note/publish/list/archive",
+          "method": "GET",
+          "verify": true,
+          "params": {
+            "oid": "int: av 号",
+            "oid_type": "int: oid_type",
+            "pn": "int: 页码",
+            "ps": "int: 每页项数"
+          },
+          "comment": "列出稿件公开笔记列表"
+        },
+        "video_online_broadcast_servers": {
+          "method": "GET",
+          "verify": false,
+          "url": "https://api.bilibili.com/x/web-interface/broadcast/servers?platform=pc",
+          "comment": "获取视频在线人数实时监测服务器列表"
+        },
+        "ai_conclusion": {
+          "url": "https://api.bilibili.com/x/web-interface/view/conclusion/get",
+          "method": "GET",
+          "wbi": true,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "string: BV 号",
+            "cid": "int: cid",
+            "up_mid": "int: up_mid"
+          },
+          "comment": "ai 总结"
+        },
+        "online": {
+          "url": "https://api.bilibili.com/x/player/online/total",
+          "method": "GET",
+          "verify": false,
+          "params": {
+            "aid": "int: av 号",
+            "bvid": "int: bvid",
+            "cid": "int: cid"
+          },
+          "comment": "在线人数检测"
+        }
+      },
+}
