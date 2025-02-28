@@ -401,7 +401,7 @@ export class Api {
 
         try {
             let body
-            if (!['get', 'head'].includes(config.method.toLowerCase())) {
+            if (!['GET', 'HEAD'].includes(config.method)) {
                 body = typeof config.data === 'string' ? config.data : JSON.stringify(config.data)
             }
 
