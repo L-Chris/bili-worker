@@ -32,7 +32,7 @@ app.get('/video/subtitle', async (c) => {
     } })
 
     // 调用 video 模块获取字幕
-    const subtitles = await video.getPlayerInfo();
+    const subtitles = await video.getSubtitle();
     
     return c.json({
       code: 200,

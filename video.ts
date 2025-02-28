@@ -48,16 +48,28 @@ class Video {
         return body;
     }
 
-    async getPlayerInfo() {
+    async getPlayerInfo(params?: {
+        cid?: string
+        epid?: string
+    }) {
         if (!this.info) await this.getInfo();
+
+        const cid = params?.cid || this.info.cid
+
+        const requestParams = {
+            aid: this.aid,
+            cid,
+            bvid: this.bvid,
+            web_location: '1315873'
+        } as Record<string, any>
+
+        if (params?.epid) {
+            requestParams.epid = params.epid
+        }
+
         const api = new Api({
             ...videoApi.info.get_player_info,
-            params: {
-                aid: this.aid,
-                cid: this.info.cid,
-                bvid: this.bvid,
-                web_location: '1315873'
-            },
+            params: requestParams,
             credential: this.credential
         });
 
@@ -69,38 +81,36 @@ class Video {
     async getSubtitle(params: {
         page_index?: number
         cid?: number
-        out?: string
         lan_name?: string
         lan_code?: string
     } = {}) {
         if (!this.player_info) await this.getPlayerInfo();
+        const lan_name = params.lan_name || '中文（自动生成）'
+        const lan_code = params.lan_code || 'ai-zh'
 
         // 从 player_info 中获取字幕信息
-        const subtitles = this.player_info.data?.subtitle?.subtitles || [];
+        const subtitles = this.player_info?.subtitle?.subtitles || [];
         
         // 如果没有字幕，返回空数组
-        if (subtitles.length === 0) {
-            return [];
-        }
+        if (subtitles.length === 0) return
 
         // 根据语言代码查找字幕
         const targetSubtitle = params.lan_code ? 
-            subtitles.find((sub: any) => sub.lan === params.lan_code) : 
+            subtitles.find((sub: any) => sub.lan_doc === lan_name || sub.lan === lan_code) : 
             subtitles[0];
 
-        if (!targetSubtitle?.subtitle_url) {
-            return [];
-        }
+        if (!targetSubtitle?.subtitle_url) return
 
         // 获取字幕内容
+        const subtitle_url = /^https:/.test(targetSubtitle?.subtitle_url) ? `https:${targetSubtitle?.subtitle_url}` : targetSubtitle.subtitle_url
         const api = new Api({
-            url: targetSubtitle.subtitle_url,
+            url: subtitle_url,
             method: 'GET',
             credential: this.credential
-        });
+        })
 
-        const subtitleData = await api.request();
-        return subtitleData?.body || [];
+        const subtitleData = await api.request({ raw: true });
+        return subtitleData;
     }
 }
 
