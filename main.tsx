@@ -1,9 +1,15 @@
 import { Hono } from 'hono'
+import { serveStatic } from "https://deno.land/x/hono/middleware.ts";
 import { Video } from './video.ts'
+import { App } from './app.tsx'
 
 const app = new Hono()
 
-app.get('/', (c) => c.text('Hello World'))
+app.use("/static/*", serveStatic({ root: "./" }));
+
+app.get('/', (c) => {
+  return c.html(<App/>)
+})
 
 app.get('/video/subtitle', async (c) => {
   try {
@@ -30,11 +36,11 @@ app.get('/video/subtitle', async (c) => {
     const video = new Video({ 
       bvid, 
       credential: {
-        sessdata: cookies['sessdata'] || '',
-        bili_jct: cookies['bili_jct'] || '',
-        buvid3: cookies['buvid3'] || '',
-        dedeuserid: cookies['dedeuserid'] || '',
-        ac_time_value: cookies['ac_time_value'] || ''
+        sessdata: cookies['sessdata'] || Deno.env.get('sessdata') || '',
+        bili_jct: cookies['bili_jct'] || Deno.env.get('bili_jct') || '',
+        buvid3: cookies['buvid3'] || Deno.env.get('buvid3') || '',
+        dedeuserid: cookies['dedeuserid'] || Deno.env.get('dedeuserid') || '',
+        ac_time_value: cookies['ac_time_value'] || Deno.env.get('ac_time_value') || ''
       } 
     });
 
@@ -43,7 +49,7 @@ app.get('/video/subtitle', async (c) => {
     const data = (type === '0' && Array.isArray(subtitle?.body)) ? subtitle.body.reduce((pre: string, cur: { content: string }) => pre + cur.content, '') : subtitle
     
     return c.json({
-      code: 200,
+      code: data ? 200 : 400,
       data
     });
     
