@@ -7,6 +7,7 @@ export function App() {
         <div>
           <input id="bvid" type="text" />
           <button id="btn" type="button">获取字幕</button>
+          <button id="copy" type="button">复制字幕</button>
         </div>
         <div id="content"></div>
         <script src="/static/main.js"></script>
