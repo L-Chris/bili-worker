@@ -47,6 +47,8 @@ async function getVideoSubtitle(params: {
     title: video.info.title,
     subtitle: data,
     owner: video.info.owner.name,
+    tag: `${video.info.tname}-${video.info.tname_v2}`,
+    desc: video.info.desc,
   };
 }
 
@@ -90,7 +92,12 @@ app.post("/video/summary", async (c) => {
           },
           {
             role: "user",
-            content: data.subtitle,
+            content: `标题：${data.title}
+作者：${data.owner}
+标签：${data.tag}
+简介：${data.desc}
+字幕：${data.subtitle}
+`,
           },
         ],
         temperature: 0.7,
