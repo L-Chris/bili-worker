@@ -1,5 +1,6 @@
 {
     "imports": {
+        "eventsource-parser": "npm:eventsource-parser@^3.0.0",
         "hono": "jsr:@hono/hono@^4.7.2"
     },
     "tasks": {
