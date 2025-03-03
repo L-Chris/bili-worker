@@ -57,27 +57,20 @@ app.post("/video/summary", async (c) => {
 
   // 参数验证
   if (!bvid) {
-    return c.json({
-      code: 400,
-      message: "缺少必要参数 bvid",
-    }, 400);
+    return createStreamResponse('error', '缺少必要参数 bvid');
   }
 
   const data = await getVideoSubtitle({ bvid, type: "0", cookie });
   if (!data) {
-    return c.json({
-      code: "400",
-      message: "获取字幕失败",
-    });
+    return createStreamResponse('error', '获取字幕失败');
   }
 
   if (!data.subtitle) {
-    return c.json({
-      code: "200",
-      message: "视频无字幕",
-      data,
-    });
+    return createStreamResponse('error', '视频无字幕');
   }
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
   const req = await fetch(
     "https://qwen-rethinkos.deno.dev/v1/chat/completions",
@@ -106,8 +99,6 @@ app.post("/video/summary", async (c) => {
     },
   );
 
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
   const stream = new ReadableStream({
     async start(controller) {
       const created = Date.now() / 1000;
@@ -125,8 +116,8 @@ app.post("/video/summary", async (c) => {
 
       const send = (params: {
         content?: string;
-        type?: 'text' | 'conversation'
-        extra?: Record<string, string>
+        type?: "text" | "conversation";
+        extra?: Record<string, string>;
       }) => {
         message.choices[0].delta.content = params.content || "";
         message.choices[0].delta.type = params.type || "text";
@@ -156,7 +147,7 @@ app.post("/video/summary", async (c) => {
           }
         },
       });
-      send({ type: 'conversation', extra: data })
+      send({ type: "conversation", extra: data });
       const reader = req.body!.getReader();
       try {
         while (true) {
@@ -211,5 +202,43 @@ app.get("/video/subtitle", async (c) => {
     }, 500);
   }
 });
+
+// 创建统一的流响应函数
+const createStreamResponse = (type: string, content: string) => {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      const created = Date.now() / 1000;
+      const baseMessage = {
+        id: "",
+        model: "",
+        object: "chat.completion.chunk",
+        choices: [{
+          index: 0,
+          delta: { content: "", type: "", extra: {} },
+          finish_reason: null,
+        }],
+        created,
+      };
+      baseMessage.choices[0].delta.type = type;
+      baseMessage.choices[0].delta.content = content;
+      // 发送初始消息
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify(baseMessage)}\n\n`),
+      );
+      // 发送结束标记
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      "Connection": "keep-alive",
+    },
+  });
+};
 
 Deno.serve({ port: 8000 }, app.fetch);
