@@ -213,6 +213,34 @@ app.get("/video/subtitle", async (c) => {
   }
 });
 
+app.get('/video/playurl', async (c) => {
+  const bvid = c.req.query("bvid");
+
+  const cookies = Object.fromEntries(
+    (c.req.header("cookie") || "").split(";")
+      .map((item) => item.trim().split("="))
+      .filter((item) => item.length === 2),
+  );
+  const video = new Video({
+    bvid,
+    credential: {
+      sessdata: cookies?.sessdata || Deno.env.get("sessdata") || "",
+      bili_jct: cookies?.bili_jct || Deno.env.get("bili_jct") || "",
+      buvid3: cookies?.buvid3 || Deno.env.get("buvid3") || "",
+      dedeuserid: cookies?.dedeuserid || Deno.env.get("dedeuserid") || "",
+      ac_time_value: cookies?.ac_time_value || Deno.env.get("ac_time_value") ||
+        "",
+    },
+  });
+
+  const data = await video.get_download_url();
+
+  return c.json({
+    code: 200,
+    data
+  })
+})
+
 // 创建统一的流响应函数
 const createStreamResponse = (type: string, content: string) => {
   const encoder = new TextEncoder();

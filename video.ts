@@ -114,6 +114,43 @@ class Video {
         return subtitleData;
     }
 
+    async get_download_url(params: {
+        page_index?: number
+        cid?: number
+    } = {}) {
+        const page_index = params.page_index || 0
+        let cid
+        if (!params.cid) {
+            cid = await this.getCidByIndex(page_index)
+        } else {
+            cid = params.cid
+        }
+
+        const api = new Api({
+            ...videoApi.info.playurl,
+            credential: this.credential,
+            params: {
+                "avid": this.aid,
+                "bvid": this.bvid,
+                "cid": cid,
+                "qn": "127",
+                "fnver": 0,
+                "fnval": 4048,
+                "fourk": 1,
+                "gaia_source": "",
+                "from_client": "BROWSER",
+                "is_main_page": "false",
+                "need_fragment": "false",
+                "isGaiaAvoided": "true",
+                "web_location": 1315873,
+                "voice_balance": 1,
+            }
+        })
+
+        const res = await api.request()
+        return res
+    }
+
     async getCidByIndex(index: number) {
         if (!this.info) await this.getInfo()
         const pages = this.info.pages
