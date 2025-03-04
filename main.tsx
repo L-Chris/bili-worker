@@ -3,6 +3,7 @@ import { serveStatic } from "https://deno.land/x/hono/middleware.ts";
 import { Video } from "./video.ts";
 import { App } from "./app.tsx";
 import { createParser } from "eventsource-parser";
+import { formatTimestamp } from "./utils.ts";
 
 const app = new Hono();
 
@@ -37,11 +38,13 @@ async function getVideoSubtitle(params: {
 
   // 调用 video 模块获取字幕
   const subtitle = await video.getSubtitle();
+  // 格式化时间戳为 HH:MM:SS,MS 格式
   const data = (params.type === "0" && Array.isArray(subtitle?.body))
-    ? subtitle.body.reduce(
-      (pre: string, cur: { content: string }) => pre + cur.content,
-      "",
-    )
+    ? subtitle.body.map((cur: { content: string; from: number; to: number }) => {
+        const fromTime = formatTimestamp(cur.from);
+        const toTime = formatTimestamp(cur.to);
+        return `[${fromTime},${toTime}]${cur.content}`;
+      }).join('\n')
     : subtitle;
   return {
     title: video.info.title,
