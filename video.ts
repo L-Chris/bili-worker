@@ -135,7 +135,7 @@ class Video {
                 "cid": cid,
                 "qn": "127",
                 "fnver": 0,
-                "fnval": 4048,
+                "fnval": 16,
                 "fourk": 1,
                 "gaia_source": "",
                 "from_client": "BROWSER",
