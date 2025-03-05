@@ -24,10 +24,6 @@ app.post("/video/summary", async (c) => {
   // 获取查询参数
   const bvid = c.req.query("bvid");
   const cookie = c.req.header("cookie") || "";
-  // 从请求中获取FormData
-  const formData = await c.req.formData();
-  // 获取音频文件
-  const audioFile = formData.get("audio");
   let videoData = {
     title: "",
     subtitle: "",
@@ -36,12 +32,22 @@ app.post("/video/summary", async (c) => {
     desc: "",
   };
 
+  const contentType = c.req.header("Content-Type") || "";
+  let audioFile = null;
+
+  // 只有在 Content-Type 为 multipart/form-data 时才解析 FormData
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await c.req.formData();
+    audioFile = formData.get("audio");
+  }
+
   // 参数验证
   if (!bvid) {
     return createStreamResponse("error", "缺少必要参数 bvid", {});
   }
 
   if (audioFile) {
+    const formData = await c.req.formData();
     videoData.title = formData.get("title") as string;
     videoData.desc = formData.get("desc") as string;
     videoData.tag = formData.get("tag") as string;
