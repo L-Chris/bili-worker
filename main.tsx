@@ -4,7 +4,13 @@ import { Video } from "./video.ts";
 import { App } from "./app.tsx";
 import { createParser } from "eventsource-parser";
 import { formatTimestamp } from "./utils.ts";
-import { createTranscriptionTask, pollTaskUntilComplete, ResultData, ResultState, uploadAudio } from './bcut.ts'
+import {
+  createTranscriptionTask,
+  pollTaskUntilComplete,
+  ResultData,
+  ResultState,
+  uploadAudio,
+} from "./bcut.ts";
 
 const app = new Hono();
 
@@ -38,29 +44,36 @@ async function getVideoSubtitle(params: {
   });
 
   // 调用 video 模块获取字幕
-  await video.getInfo()
+  await video.getInfo();
   const [subtitle, urlRes] = await Promise.all([
     video.getSubtitle(),
-    video.get_download_url()
-  ])
+    video.get_download_url(),
+  ]);
   // 格式化时间戳为 HH:MM:SS,MS 格式
-  const data = (params.type === "0" && Array.isArray(subtitle?.body))
-    ? subtitle.body.map((cur: { content: string; from: number; to: number }) => {
-        const fromTime = formatTimestamp(cur.from);
-        const toTime = formatTimestamp(cur.to);
+  let data = "";
+  if (params.type === "0" && Array.isArray(subtitle?.body)) {
+    const hasHours = subtitle.body.some((item) => item.to >= 3600);
+    data = subtitle.body.map(
+      (cur: { content: string; from: number; to: number }) => {
+        // 检查是否有超过一小时的时间戳
+        const fromTime = formatTimestamp(cur.from, hasHours);
+        const toTime = formatTimestamp(cur.to, hasHours);
         return `[${fromTime},${toTime}]${cur.content}`;
-      }).join('\n')
-    : subtitle;
+      },
+    ).join("\n");
+  } else {
+    data = subtitle;
+  }
 
-    const audioArr = urlRes?.dash?.audio
-    if (!audioArr?.length) return
-    const audio = audioArr[audioArr.length - 1]
-    let audioUrl = ''
-    if (audio.backupUrl?.[0].indexOf('upos-sz') > 0) {
-      audioUrl = audio.baseUrl
-    } else {
-      audioUrl = audio.backupUrl?.[0]
-    }
+  const audioArr = urlRes?.dash?.audio;
+  if (!audioArr?.length) return;
+  const audio = audioArr[audioArr.length - 1];
+  let audioUrl = "";
+  if (audio.backupUrl?.[0].indexOf("upos-sz") > 0) {
+    audioUrl = audio.baseUrl;
+  } else {
+    audioUrl = audio.backupUrl?.[0];
+  }
   return {
     title: video.info.title,
     audioUrl,
@@ -78,16 +91,16 @@ app.post("/video/summary", async (c) => {
 
   // 参数验证
   if (!bvid) {
-    return createStreamResponse('error', '缺少必要参数 bvid', {});
+    return createStreamResponse("error", "缺少必要参数 bvid", {});
   }
 
   const data = await getVideoSubtitle({ bvid, type: "0", cookie });
   if (!data) {
-    return createStreamResponse('error', '获取字幕失败', {});
+    return createStreamResponse("error", "获取字幕失败", {});
   }
 
   if (!data.subtitle) {
-    return createStreamResponse('error', '视频无字幕', data);
+    return createStreamResponse("error", "视频无字幕", data);
   }
 
   const encoder = new TextEncoder();
@@ -229,7 +242,7 @@ app.get("/video/subtitle", async (c) => {
   }
 });
 
-app.get('/video/playurl', async (c) => {
+app.get("/video/playurl", async (c) => {
   const bvid = c.req.query("bvid");
 
   const cookies = Object.fromEntries(
@@ -253,59 +266,79 @@ app.get('/video/playurl', async (c) => {
 
   return c.json({
     code: 200,
-    data
-  })
-})
+    data,
+  });
+});
 
-app.post('/video/detect_text', async (c) => {
+app.post("/video/detect_text", async (c) => {
   // 从请求中获取FormData
   const formData = await c.req.formData();
   // 获取音频文件
-  const audioFile = formData.get('audio');
-  
+  const audioFile = formData.get("audio");
+
   if (!audioFile || !(audioFile instanceof File)) {
     return c.json({
       code: 400,
-      message: '请上传音频文件',
-      data: ''
+      message: "请上传音频文件",
+      data: "",
     });
   }
 
   // 将File对象转换为Blob格式
-  const audioBlob = new Blob([await audioFile.arrayBuffer()], { type: audioFile.type || 'audio/mp3' });
+  const audioBlob = new Blob([await audioFile.arrayBuffer()], {
+    type: audioFile.type || "audio/mp3",
+  });
   const result = await uploadAudio(audioBlob);
-  if (!result) return c.json({
-    code: 400,
-    message: '上传音频失败',
-    data: ''
-  })
-  const taskId = await createTranscriptionTask(result)
-  if (!taskId) return c.json({
-    code: 400,
-    message: '创建任务失败',
-    data: ''
-  })
-  const statusRes = await pollTaskUntilComplete(taskId)
+  if (!result) {
+    return c.json({
+      code: 400,
+      message: "上传音频失败",
+      data: "",
+    });
+  }
+  const taskId = await createTranscriptionTask(result);
+  if (!taskId) {
+    return c.json({
+      code: 400,
+      message: "创建任务失败",
+      data: "",
+    });
+  }
+  const statusRes = await pollTaskUntilComplete(taskId);
 
-  if (statusRes.state === ResultState.ERROR || !statusRes.result) return c.json({
-    code: 400,
-    message: '获取字幕失败',
-    data: ''
-  })
+  if (statusRes.state === ResultState.ERROR || !statusRes.result) {
+    return c.json({
+      code: 400,
+      message: "获取字幕失败",
+      data: "",
+    });
+  }
 
-  const resultData = JSON.parse(statusRes.result) as ResultData
+  const resultData = JSON.parse(statusRes.result) as ResultData;
+
+  // 检查是否有超过一小时的时间戳
+  const hasHours = resultData.utterances.some((item) =>
+    item.end_time / 1000 >= 3600
+  );
+
   const data = resultData.utterances.map((item) => {
-    return `[${formatTimestamp(item.start_time / 1000)},${formatTimestamp(item.end_time / 1000)}]${item.transcript}`
-  }).join('\n')
+    return `[${formatTimestamp(item.start_time / 1000, hasHours)},${
+      formatTimestamp(item.end_time / 1000, hasHours)
+    }]${item.transcript}`;
+  }).join("\n");
 
   return c.json({
     code: 200,
-    data
+    data,
   });
-})
+});
 
 // 创建统一的流响应函数
-const createStreamResponse = (type: string, content: string, data: Record<string, any>) => {
+const createStreamResponse = (
+  type: string,
+  content: string,
+  data: Record<string, any>,
+) => {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {

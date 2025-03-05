@@ -66,10 +66,10 @@ export function aid2bvid(aid: number): string {
   return bytes.join("");
 }
 
-export const formatTimestamp = (timestamp: number) => {
+export const formatTimestamp = (timestamp: number, showHours: boolean = false) => {
   const time = timestamp - (timestamp === timestamp ? 0.01 : 0);
   const hours = Math.floor(time / 3600).toString().padStart(2, '0');
   const minutes = Math.floor(time / 60 % 60).toString().padStart(2, '0');
   const seconds = Math.floor(time % 60).toString().padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
+  return showHours ? `${hours}:${minutes}:${seconds}` : `${minutes}:${seconds}`;
 };
