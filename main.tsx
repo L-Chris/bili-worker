@@ -37,7 +37,11 @@ async function getVideoSubtitle(params: {
   });
 
   // 调用 video 模块获取字幕
-  const subtitle = await video.getSubtitle();
+  await video.getInfo()
+  const [subtitle, urlRes] = await Promise.all([
+    video.getSubtitle(),
+    video.get_download_url()
+  ])
   // 格式化时间戳为 HH:MM:SS,MS 格式
   const data = (params.type === "0" && Array.isArray(subtitle?.body))
     ? subtitle.body.map((cur: { content: string; from: number; to: number }) => {
@@ -46,8 +50,19 @@ async function getVideoSubtitle(params: {
         return `[${fromTime},${toTime}]${cur.content}`;
       }).join('\n')
     : subtitle;
+
+    const audioArr = (await urlRes.json()).data?.dash?.audio
+    if (!audioArr?.length) return
+    const audio = audioArr[audioArr.length - 1]
+    let audioUrl = ''
+    if (audio.backupUrl?.[0].indexOf('upos-sz') > 0) {
+      audioUrl = audio.baseUrl
+    } else {
+      audioUrl = audio.backupUrl?.[0]
+    }
   return {
     title: video.info.title,
+    audioUrl,
     subtitle: data,
     owner: video.info.owner.name,
     tag: `${video.info.tname}-${video.info.tname_v2}`,
@@ -62,16 +77,16 @@ app.post("/video/summary", async (c) => {
 
   // 参数验证
   if (!bvid) {
-    return createStreamResponse('error', '缺少必要参数 bvid');
+    return createStreamResponse('error', '缺少必要参数 bvid', {});
   }
 
   const data = await getVideoSubtitle({ bvid, type: "0", cookie });
   if (!data) {
-    return createStreamResponse('error', '获取字幕失败');
+    return createStreamResponse('error', '获取字幕失败', {});
   }
 
   if (!data.subtitle) {
-    return createStreamResponse('error', '视频无字幕');
+    return createStreamResponse('error', '视频无字幕', data);
   }
 
   const encoder = new TextEncoder();
@@ -242,7 +257,7 @@ app.get('/video/playurl', async (c) => {
 })
 
 // 创建统一的流响应函数
-const createStreamResponse = (type: string, content: string) => {
+const createStreamResponse = (type: string, content: string, data: Record<string, any>) => {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     start(controller) {
@@ -260,6 +275,7 @@ const createStreamResponse = (type: string, content: string) => {
       };
       baseMessage.choices[0].delta.type = type;
       baseMessage.choices[0].delta.content = content;
+      baseMessage.choices[0].delta.extra = data;
       // 发送初始消息
       controller.enqueue(
         encoder.encode(`data: ${JSON.stringify(baseMessage)}\n\n`),
