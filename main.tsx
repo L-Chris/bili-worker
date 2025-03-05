@@ -29,12 +29,12 @@ app.post("/video/summary", async (c) => {
   // 获取音频文件
   const audioFile = formData.get("audio");
   let videoData = {
-    title: '',
-    subtitle: '',
-    tag: '',
-    owner: '',
-    desc: ''
-  }
+    title: "",
+    subtitle: "",
+    tag: "",
+    owner: "",
+    desc: "",
+  };
 
   // 参数验证
   if (!bvid) {
@@ -58,12 +58,12 @@ app.post("/video/summary", async (c) => {
     if (!data) {
       return createStreamResponse("error", "获取字幕失败", {});
     }
-  
+
     if (!data.subtitle) {
       return createStreamResponse("error", "视频无字幕", data);
     }
 
-    videoData = data
+    videoData = data;
   }
 
   const encoder = new TextEncoder();
@@ -149,7 +149,7 @@ app.post("/video/summary", async (c) => {
           }
         },
       });
-      send({ type: "conversation", extra: data });
+      send({ type: "conversation", extra: videoData });
       const reader = req.body!.getReader();
       try {
         while (true) {
@@ -312,7 +312,7 @@ async function getAudioSubtitle(audioFile: any) {
       code: 400,
       message: "请上传音频文件",
       data: "",
-    }
+    };
   }
 
   // 将File对象转换为Blob格式
@@ -325,7 +325,7 @@ async function getAudioSubtitle(audioFile: any) {
       code: 400,
       message: "上传音频失败",
       data: "",
-    }
+    };
   }
   const taskId = await createTranscriptionTask(result);
   if (!taskId) {
@@ -333,7 +333,7 @@ async function getAudioSubtitle(audioFile: any) {
       code: 400,
       message: "创建任务失败",
       data: "",
-    }
+    };
   }
   const statusRes = await pollTaskUntilComplete(taskId);
 
@@ -342,7 +342,7 @@ async function getAudioSubtitle(audioFile: any) {
       code: 400,
       message: "获取字幕失败",
       data: "",
-    }
+    };
   }
 
   const resultData = JSON.parse(statusRes.result) as ResultData;
@@ -361,8 +361,8 @@ async function getAudioSubtitle(audioFile: any) {
   return {
     data,
     code: 200,
-    message: ''
-  }
+    message: "",
+  };
 }
 
 // 创建统一的流响应函数
