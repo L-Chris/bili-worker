@@ -4,6 +4,7 @@ import { Video } from "./video.ts";
 import { App } from "./app.tsx";
 import { createParser } from "eventsource-parser";
 import { formatTimestamp } from "./utils.ts";
+import { createTranscriptionTask, pollTaskUntilComplete, ResultData, ResultState, uploadAudio } from './bcut.ts'
 
 const app = new Hono();
 
@@ -254,6 +255,53 @@ app.get('/video/playurl', async (c) => {
     code: 200,
     data
   })
+})
+
+app.post('/video/detect_text', async (c) => {
+  // 从请求中获取FormData
+  const formData = await c.req.formData();
+  // 获取音频文件
+  const audioFile = formData.get('audio');
+  
+  if (!audioFile || !(audioFile instanceof File)) {
+    return c.json({
+      code: 400,
+      message: '请上传音频文件',
+      data: ''
+    });
+  }
+
+  // 将File对象转换为Blob格式
+  const audioBlob = new Blob([await audioFile.arrayBuffer()], { type: audioFile.type || 'audio/mp3' });
+  const result = await uploadAudio(audioBlob);
+  if (!result) return c.json({
+    code: 400,
+    message: '上传音频失败',
+    data: ''
+  })
+  const taskId = await createTranscriptionTask(result)
+  if (!taskId) return c.json({
+    code: 400,
+    message: '创建任务失败',
+    data: ''
+  })
+  const statusRes = await pollTaskUntilComplete(taskId)
+
+  if (statusRes.state === ResultState.ERROR || !statusRes.result) return c.json({
+    code: 400,
+    message: '获取字幕失败',
+    data: ''
+  })
+
+  const resultData = JSON.parse(statusRes.result) as ResultData
+  const data = resultData.utterances.map((item) => {
+    return `[${formatTimestamp(item.start_time / 1000)},${formatTimestamp(item.end_time / 1000)}]${item.transcript}`
+  }).join('\n')
+
+  return c.json({
+    code: 200,
+    data
+  });
 })
 
 // 创建统一的流响应函数
