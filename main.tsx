@@ -51,7 +51,7 @@ async function getVideoSubtitle(params: {
       }).join('\n')
     : subtitle;
 
-    const audioArr = (await urlRes.json()).data?.dash?.audio
+    const audioArr = urlRes?.dash?.audio
     if (!audioArr?.length) return
     const audio = audioArr[audioArr.length - 1]
     let audioUrl = ''
