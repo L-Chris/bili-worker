@@ -8,6 +8,8 @@ export const FAKE_HEADERS = {
 }
 
 export async function uploadAudio (file: Blob): Promise<string> {
+  const isMp4 = file.type.includes('/mp4')
+  const filetype = isMp4 ? 'mp4' : 'mp3'
   // 1. 创建资源
   const createResp = await fetch(
     `${API_BASE_URL}/resource/create`,
@@ -18,10 +20,10 @@ export async function uploadAudio (file: Blob): Promise<string> {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        name: `BV1rXNme6E96.mp3`,
+        name: `BV1rXNme6E96.${filetype}`,
         type: 2,
         size: file.size,
-        ResourceFileType: 'mp3',
+        ResourceFileType: filetype,
         model_id: '7'
       })
     }
