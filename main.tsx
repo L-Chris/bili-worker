@@ -56,7 +56,7 @@ app.post("/video/summary", async (c) => {
     const audioRes = await getAudioSubtitle(audioFile);
 
     if (!audioRes.data || audioRes.code !== 200) {
-      return createStreamResponse("error", "解析音频失败", {});
+      return createStreamResponse("error", audioRes.message, {});
     }
     videoData.subtitle = audioRes.data;
   } else {

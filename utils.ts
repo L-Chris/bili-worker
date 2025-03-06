@@ -67,7 +67,7 @@ export function aid2bvid(aid: number): string {
 }
 
 export const formatTimestamp = (timestamp: number, showHours: boolean = false) => {
-  const time = timestamp - (timestamp === timestamp ? 0.01 : 0);
+  const time = timestamp  === 0 ? 0 : timestamp - (timestamp === timestamp ? 0.01 : 0);
   const hours = Math.floor(time / 3600).toString().padStart(2, '0');
   const minutes = Math.floor(time / 60 % 60).toString().padStart(2, '0');
   const seconds = Math.floor(time % 60).toString().padStart(2, '0');
