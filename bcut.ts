@@ -24,7 +24,7 @@ export async function uploadAudio (file: Blob): Promise<string> {
         type: 2,
         size: file.size,
         ResourceFileType: filetype,
-        model_id: '7'
+        model_id: '8'
       })
     }
   )
@@ -65,7 +65,7 @@ export async function uploadAudio (file: Blob): Promise<string> {
         ResourceId: createData.resource_id,
         etags: etags.filter(_ => _).join(','),
         UploadId: createData.upload_id,
-        model_id: '7'
+        model_id: '8'
       })
     }
   )
@@ -84,7 +84,7 @@ export async function createTranscriptionTask (resource: string): Promise<string
     },
     body: JSON.stringify({
       resource: resource,
-      model_id: '7'
+      model_id: '8'
     })
   })
   const taskRes = await resp.json()
@@ -94,7 +94,7 @@ export async function createTranscriptionTask (resource: string): Promise<string
 
 export async function checkTaskStatus (taskId: string): Promise<ResultResponse> {
   const resp = await fetch(
-    `${API_BASE_URL}/task/result?task_id=${taskId}&model_id=7`,
+    `${API_BASE_URL}/task/result?task_id=${taskId}&model_id=8`,
     {
       method: 'GET',
       headers: FAKE_HEADERS
