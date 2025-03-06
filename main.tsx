@@ -251,7 +251,9 @@ app.post("/video/detect_text", async (c) => {
   const formData = await c.req.formData();
   // 获取音频文件
   const audioFile = formData.get("audio");
-  const res = await getAudioSubtitle(audioFile);
+  const res = await getAudioSubtitle({
+    file: audioFile
+  });
   return c.json(res);
 });
 
