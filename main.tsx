@@ -270,7 +270,7 @@ app.get("/video/redirect", async(c) => {
 
   return c.json({
     code: 200,
-    data: res.headers.get('Location'),
+    data: res.headers.get('location'),
   })
 })
 
