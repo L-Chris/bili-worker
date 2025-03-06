@@ -1,6 +1,6 @@
 const API_BASE_URL = "https://member.bilibili.com/x/bcut/rubick-interface"
 
-const FAKE_HEADERS = {
+export const FAKE_HEADERS = {
     // "Origin": "https://member.bilibili.com",
     // "Referer": "https://member.bilibili.com/",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",

@@ -6,11 +6,13 @@ import { createParser } from "eventsource-parser";
 import { formatTimestamp } from "./utils.ts";
 import {
   createTranscriptionTask,
+  FAKE_HEADERS,
   pollTaskUntilComplete,
   ResultData,
   ResultState,
   uploadAudio,
 } from "./bcut.ts";
+import { Credential } from "./network.ts";
 
 const app = new Hono();
 
@@ -247,6 +249,30 @@ app.post("/video/detect_text", async (c) => {
   const res = await getAudioSubtitle(audioFile);
   return c.json(res);
 });
+
+app.get("/video/redirect", async(c) => {
+  const credential = new Credential({
+    sessdata: Deno.env.get("sessdata") || "",
+    bili_jct: Deno.env.get("bili_jct") || "",
+    buvid3: Deno.env.get("buvid3") || "",
+    dedeuserid: Deno.env.get("dedeuserid") || "",
+    ac_time_value: Deno.env.get("ac_time_value") || "",
+  })
+  const res = await fetch('https://cm.bilibili.com/cm/api/fees/pc/sync/v2?msg=a%7C5614%2Cb%7Cbilibili%2Cc%7C1%2Cd%7C0%2Ce%7CCMm47wQQoca%2BGBiG1M1eIKgDKAEw2O%2BsATjuK0IgMTc0MTIzMDgyMzc4NnExNzJhMjdhMTExYTM2cTkwOTFI6rLHy9YyUgblub%2Flt55aBuW5v%2BS4nGIG5Lit5Zu9aANwAHiAgICA8FiAAQGIAQCSAQwxMjEuOC4yMjcuMjegAagDqAHuA7IBIIcYSDpZS0UhRoqyQ7dyocV3Wz7Pzz07%2Bbx4QsbGLimrugH%2BA2h0dHBzOi8vd3d3LmJpbGliaWxpLmNvbS92aWRlby9CVjEzYUNGWVBFcks%2FdHJhY2tpZD13ZWJfcGVnYXN1c185LnJvdXRlci13ZWItcGVnYXN1cy0xOTUzMDI3LThmZGI3Y2Q1Zi05c2Jmbi4xNzQxMjMwODIzNzc0LjM2NCZ0cmFja19pZD1wYmFlcy52NDZXV0MxVF9rbmdPMk5xVFZvMWhQQkdncU9mMTFMZG9KNGRpYVJna0RINUZCMjNGdlBCeGdyLXRfRVIyYVN5bUVNNnFIUG80bkpwbWFDUDBoSFZjR01DOUhYVEJmUERqa1p3Ykc2QWt1QXRtUG9jMTVVSm50SkJmVUQtN0tGRXV4dG1SeHN5T2tXbzZpQkZWcENyeEpMVGlSQVRqclE1NnJ3VlpGSWJMVFlrZUVMZ1VBNXRmWkhETHNueUFvNm0mY2FpZD1fX0NBSURfXyZyZXNvdXJjZV9pZD1fX1JFU09VUkNFSURfXyZzb3VyY2VfaWQ9NTYxNCZmcm9tX3NwbWlkPV9fRlJPTVNQTUlEX18mcmVxdWVzdF9pZD0xNzQxMjMwODIzNzg2cTE3MmEyN2ExMTFhMzZxOTA5MSZjcmVhdGl2ZV9pZD0xOTg0MDQ2MTQmbGlua2VkX2NyZWF0aXZlX2lkPTE5ODQwNDYxNMIBAjQw0gEA2AHHBeABgJTr3APoAdCGA%2FABAPgBqAOAAkCIAgCSAgCYApqdkwmgAv6NAqgC%2FdQBsAI1uAIAwAIAyAKQTuoCAPgC89QBiAMKkgMAqAMAsAMAuAMAyAMA0gPNAXsiMSI6IjE5ODQwNDYxNCIsIjExIjoiMjMxIiwiMTIiOiI1NjE0IiwiMTMiOiIyNDAyNTg2IiwiMTQiOiI5OTMiLCIxNSI6IjEwMDEiLCIxNiI6IjI0MDI1ODZfMjcyNTEiLCIyIjoiMjgzMjM0NCIsIjI0IjoiMSIsIjMiOiIyODMyMzQ0IiwiNCI6IjAiLCI1IjoiMCIsIjYiOiIyODMyMzQ0IiwiNyI6IjExMzcxMTM4OTg3MzAwMSIsIjgiOiIxODAzMzg4ODczIn3gAwDoAwDwAwD6AwVvdGhlcoIECW51bGw6bnVsbIgEqAOQBACgBACqBAcIueW1EBAEuAQKwAQJ0AQA2AQA4gSzATU2LnsicHNJZCI6NDQ3NzQsInYyIjoiWXY4NVdRY1dWZ3AyWVJRVGNvVjlwaFJMMEJXalZDZkU4Rm5JdkJ4ZXdNOEVjMHUzR0Ytb0dYZ2JuUDlvWkNCSkdTZGZTZGxwSGJqTUEzTEtPaHRKcHZsV3NnMkRwUExrTEEifTs2My57InBzSWQiOjM4NzAwLCJ2MiI6IlNnIn07NzAueyJwc0lkIjoyODM0MiwidjIiOiJBZyJ96AQA8AQA%2BgTwBXsiYWNjZWxlcmF0ZV9mYWN0b3IiOjEuMCwiYWNjZWxlcmF0ZV9pZCI6MCwiYWRfdHlwZV9maXgiOiJjcG0iLCJhZHZ2X2luZm8iOiJ7XCJhZGp1c3RfYmVmb3JlX2Nvc3RcIjpcIjQyNC40MTdcIixcImFkanVzdF9yYXRpb1wiOlwiMS4wMDBcIixcImJhbGFuY2VyX2lkXCI6MCxcImJhbGFuY2VyX3JhdGlvXCI6XCIwLjAwMFwiLFwiY2hhcmdlX2V4cF9rZXlfZGVwdGhcIjpcIlwiLFwiY2hhcmdlX2V4cF9rZXlfbGlnaHRcIjpcIl9mbHlfY3BhX29ubGluZV9jaGFyZ2U5XCIsXCJjb3N0X2RpZmZcIjpcIjAuMDAwXCJ9IiwiYml6X3R5cGUiOjMsImJpel90eXBlX2ZpeCI6MywiYm9vc3RfaW5mbyI6IntcImJpZFwiOjQyNCxcImJvb3N0X2JpZFwiOjAsXCJjb3N0XCI6MTMzLjQ5OTQyMDE2NjAxNTYzLFwiaWRcIjoxMDAwMSxcIm9yaV9iaWRcIjo0MjQsXCJzY29yZVwiOlwiMS40MFwifSIsImNwYSI6IntcImNwYV9sZXZlbFwiOjIsXCJjcGFfc2V0XCI6MTB9IiwiY3BhVGFyZ2V0VHlwZSI6OSwiZnJvbVRyYWNraWQiOiJ3ZWJfcGVnYXN1c185LnJvdXRlci13ZWItcGVnYXN1cy0xOTUzMDI3LThmZGI3Y2Q1Zi05c2Jmbi4xNzQxMjMwODIzNzc0LjM2NCIsImlubmVyIjowLCJtaW5pX2dhbWVfaWQiOiIiLCJtb2RlbFNjb3JlIjoie1wiY3RyXCI6XCI0OTQuMTUxOTc4XCIsXCJmaW5hbF9wY3RyXCI6XCI0OTQuMTUxOTc4XCIsXCJmaW5hbF9wY3ZyXCI6XCIxMDAwMC4wMDAwMDBcIn0iLCJ2aWRlb191cF9taWQiOjE4MDMzODg4NzN9gAUAkAUokAUzkAVDkAVIkAVJkAVykAWMAZAFswGQBbQBkAXQAZAF0QGQBdcBkAXYAZAFiQKQBY4CkAWaApAFqQKQBaoCkAXAApAFwgKQBcMCkAXFApAFywKQBc4CkAXTApAF1gKQBdcCkAXYApAF2QKQBdoCkAXbApAF3wKQBeECkAXjApAF5AKQBeUCkAXmApAF8AKQBfUCkAX7ApAF%2FwKQBY0DkAWUA5AFmAOQBZkDkAWaA5AFmwOQBaADkAWlA5AFpwOQBawDkAWwA5AFtgOQBbcDkAXAA5AFwQOQBc0DkAXgA5AF8wOQBfUDkAX4A5AF%2FwOQBbQEkAXdBJAFxgWQBY8GkAWmBpAF4QaQBZMHoAXppoD4t%2B0ZuAUJwAWa0pIByAUH4AUB%2Cf%7Cclick_sync_3%2Cg%7C1%2Ch%7C1%2Ci%7C383432060%2Cj%7C%2Ck%7C1741230807387%2Cl%7C5636%2Cm%7C1741230807237%2Cn%7C1%2Co%7C0%2Cp%7Cad_card&ts=1741230807387&spm_id_from=333.1007.tianma.3-2-6.click', {
+    method: 'HEAD',
+    headers: {
+      ...FAKE_HEADERS,
+      cookie: Object.entries(credential.getCookies() || {})
+      .map(([key, value]) => `${key}=${value}`)
+      .join('; ')
+    }
+  })
+
+  return c.json({
+    code: 200,
+    data: res.headers.get('Location'),
+  })
+})
 
 async function getVideoSubtitle(params: {
   bvid: string;
