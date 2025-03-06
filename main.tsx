@@ -53,7 +53,9 @@ app.post("/video/summary", async (c) => {
     videoData.tag = formData.get("tag") as string;
     videoData.owner = formData.get("owner") as string;
     videoData.desc = formData.get("desc") as string;
-    const audioRes = await getAudioSubtitle(audioFile);
+    const audioRes = await getAudioSubtitle({
+      file: audioFile
+    });
 
     if (!audioRes.data || audioRes.code !== 200) {
       return createStreamResponse("error", audioRes.message, {});
@@ -66,7 +68,12 @@ app.post("/video/summary", async (c) => {
     }
 
     if (!data.subtitle) {
-      return createStreamResponse("error", "视频无字幕", data);
+      const subRes = await getAudioSubtitle({ url: data.audioUrl });
+      data.subtitle = subRes.data
+    }
+
+    if (!data.subtitle) {
+      return createStreamResponse("error", "获取字幕失败", {});
     }
 
     videoData = data;
@@ -312,28 +319,37 @@ async function getVideoSubtitle(params: {
   };
 }
 
-async function getAudioSubtitle(audioFile: any) {
-  if (!audioFile || !(audioFile instanceof File)) {
+async function getAudioSubtitle(params: {
+  file?: any
+  url?: string
+}) {
+  let url = params.url || ''
+
+  if (!url && !params.file) {
     return {
       code: 400,
-      message: "请上传音频文件",
+      message: "请上传音频文件 或 音频url",
       data: "",
     };
+  }
+  if (!url) {
+    // 将File对象转换为Blob格式
+    const audioBlob = new Blob([await params.file!.arrayBuffer()], {
+      type: params.file!.type || "audio/mp3",
+    });
+    const result = await uploadAudio(audioBlob);
+    if (!result) {
+      return {
+        code: 400,
+        message: "上传音频失败",
+        data: "",
+      };
+    }
+
+    url = result
   }
 
-  // 将File对象转换为Blob格式
-  const audioBlob = new Blob([await audioFile.arrayBuffer()], {
-    type: audioFile.type || "audio/mp3",
-  });
-  const result = await uploadAudio(audioBlob);
-  if (!result) {
-    return {
-      code: 400,
-      message: "上传音频失败",
-      data: "",
-    };
-  }
-  const taskId = await createTranscriptionTask(result);
+  const taskId = await createTranscriptionTask(url);
   if (!taskId) {
     return {
       code: 400,
